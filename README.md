@@ -1,1 +1,2 @@
-# Digital Records of Bureau of Construction
+# 清宫造办处电子档案
+这个项目用 OCR 技术识别清宫造办处档案，并用全文搜索技术为学者提供方便的搜索能力。
