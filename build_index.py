@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 
 INDEX_DIR = "index"
-RECOGNITION_RESULTS_DIR = "ocr_results_temp"
+RECOGNITION_RESULTS_DIR = "ocr_results"
 PROB_THRESHOLD = 0.2
 
 
