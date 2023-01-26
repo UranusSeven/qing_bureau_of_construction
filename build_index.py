@@ -76,7 +76,7 @@ def build(idx: "Index"):
             side=side,
             content_t_cn=content_t_cn,
             content_s_cn=content_s_cn,
-            content_raw=content_s_cn,
+            content_raw=content_t_cn,
         )
     writer.commit()
 
