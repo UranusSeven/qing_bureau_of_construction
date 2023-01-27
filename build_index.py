@@ -37,7 +37,7 @@ def initialize() -> "Index":
     if os.path.exists(INDEX_DIR):
         shutil.rmtree(INDEX_DIR)
 
-    jieba.load_userdict('dict.txt')
+    jieba.load_userdict("dict.txt")
     analyzer = ChineseAnalyzer()
     schema = Schema(
         vol=NUMERIC(stored=True),

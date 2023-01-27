@@ -1,12 +1,13 @@
 import os.path
+from textwrap import wrap
 
 import fitz
+import jieba
+import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
+from PyInquirer import prompt
 from whoosh.index import open_dir
 from whoosh.qparser import QueryParser
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-
-from PyInquirer import prompt
 
 from build_index import INDEX_DIR, DummyAnalyzer
 
@@ -16,9 +17,9 @@ TEMP_DIR = "temp"
 
 INPUT = [
     {
-        'type': "input",
+        "type": "input",
         "name": "inp",
-        "message": "請輸入待查詢內容, 或輸入 q 退出:",
+        "message": "請以 *繁體中文* 輸入待查詢內容, 或輸入 q 退出:",
     },
 ]
 
@@ -62,10 +63,10 @@ if __name__ == "__main__":
                 vol = hit["vol"]
                 page = hit["page"]
                 content: str = hit["content_raw"]
-                idx = content.find(inp)
-                content = content[max(idx - 10, 0): min(idx + 10, len(content))]
+                content = " ".join(list(jieba.cut(content, cut_all=False)))
                 side = "上半" if hit["side"] == 0 else "下半"
-                choice = f"[{hit.rank}] {vol} 卷 {page} 頁 {side} 部分 {content}"
+                content = "\n".join(list(wrap(content)))
+                choice = f"[{hit.rank}] {vol} 卷 {page} 頁 {side} 部分\n{content}"
                 choice_to_hit[choice] = hit
                 choices.append(choice)
             if results.pagenum < results.pagecount:
@@ -73,10 +74,10 @@ if __name__ == "__main__":
             choices.append("退出")
             options = [
                 {
-                    'type': 'list',
-                    'name': 'choice',
-                    'message': f'第 {results.pagenum} 页, 共 {results.pagecount} 頁, 選中打開對應頁',
-                    'choices': choices
+                    "type": "list",
+                    "name": "choice",
+                    "message": f"第 {results.pagenum} 页, 共 {results.pagecount} 頁, 選中按 *enter* 打開對應頁",
+                    "choices": choices,
                 },
             ]
             choice_answer = prompt(options)
@@ -101,6 +102,7 @@ if __name__ == "__main__":
                 pdf_page.get_pixmap(dpi=500).save(temp_img_path)
 
                 img = mpimg.imread(temp_img_path)
+                plt.figure(figsize=(8, 11))
                 plt.imshow(img)
                 plt.show()
                 cont = True

@@ -38,7 +38,7 @@ def process_vol(file_name: str):
         page = pdf_document[page_num]
         print(
             "processing vol %d, page %d, progress %.2f %%"
-            % (vol, page_num,  100 * page_num / pdf_document.page_count)
+            % (vol, page_num, 100 * page_num / pdf_document.page_count)
         )
         if not process_page(page, vol):
             break
