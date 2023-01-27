@@ -18,7 +18,7 @@ INPUT = [
     {
         'type': "input",
         "name": "inp",
-        "message": "請輸入帶查詢內容, 或輸入 q 退出:",
+        "message": "請輸入待查詢內容, 或輸入 q 退出:",
     },
 ]
 
@@ -37,10 +37,14 @@ if __name__ == "__main__":
         for f in os.listdir(TEMP_DIR):
             os.remove(f"{TEMP_DIR}/{f}")
 
-        inp_answer = prompt(INPUT)
-        inp = inp_answer.get("inp")
-        if inp in ("q", "exit", "quit"):
+        try:
+            inp_answer = prompt(INPUT)
+        except EOFError:
             break
+        else:
+            inp = inp_answer.get("inp")
+            if inp in ("q", "exit", "quit", None):
+                break
 
         if len(inp) == 1:
             query = content_raw_parser.parse(inp)
@@ -81,6 +85,8 @@ if __name__ == "__main__":
                 break
             elif choice == "下一頁":
                 start_page += 1
+                cont = True
+            elif choice is None:
                 cont = True
             else:
                 hit = choice_to_hit[choice]
