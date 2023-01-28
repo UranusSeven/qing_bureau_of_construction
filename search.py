@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from PyInquirer import prompt
 from whoosh.index import open_dir
 from whoosh.qparser import QueryParser
+import logging
 
 from build_index import INDEX_DIR, DummyAnalyzer
 
@@ -25,6 +26,9 @@ INPUT = [
 
 
 if __name__ == "__main__":
+    jieba.setLogLevel(logging.ERROR)
+    jieba.load_userdict("dict.txt")
+
     if not os.path.exists(TEMP_DIR):
         os.mkdir(TEMP_DIR)
 
