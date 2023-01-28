@@ -66,7 +66,7 @@ if __name__ == "__main__":
                 content = " ".join(list(jieba.cut(content, cut_all=False)))
                 side = "上半" if hit["side"] == "0" else "下半"
                 content = "\n".join(list(wrap(content)))
-                choice = f"[{hit.rank}] {vol} 卷 {page - 1} 頁 {side} 部分\n{content}"
+                choice = f"[{hit.rank}] {vol} 卷 {int(page) - 1} 頁 {side} 部分\n{content}"
                 choice_to_hit[choice] = hit
                 choices.append(choice)
             if results.pagenum < results.pagecount:
