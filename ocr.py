@@ -28,11 +28,12 @@ TEMP_DIR = "temp"
 OCR_RESULTS_DIR = "ocr_results"
 OCR_ENDPOINT = "https://api.jzd.cool:9013/ocr_pro"
 OCR_ENDPOINT_2 = "https://ocr.gj.cool/ocr_pro"
-
 APIID = ""
 PASSWORD = ""
 TOKEN = None
 LAST_AUTH_DATETIME = None
+IGNORE_FAILURE = True
+
 
 def process_vol(file_name: str):
     vol = int(file_name[:-4])
@@ -89,18 +90,17 @@ def ocr(page_path: str, ocr_result_path: str) -> bool:
         return True
 
     start_time = time.time()
-    resp = request(page_path, OCR_ENDPOINT)
-    resp_json = json.loads(resp.text)
-    if "msg" in resp_json:
-        msg = resp_json["msg"]
-        print(f"\tfirst endpoint failed with msg {msg}")
-
-        resp = request(page_path, OCR_ENDPOINT_2)
+    continue_ = True
+    while continue_:
+        resp = request(page_path, OCR_ENDPOINT)
         resp_json = json.loads(resp.text)
         if "msg" in resp_json:
-            msg2 = resp_json["msg"]
-            print(f"\tsecond endpoint failed with msg {msg2}")
-            return False
+            msg = resp_json["msg"]
+            print(f"\trequest failed with msg {msg}")
+            continue_ = IGNORE_FAILURE
+            time.sleep(15)
+        else:
+            continue_ = False
 
     with open(ocr_result_path, "w") as fd:
         fd.write(resp.text)

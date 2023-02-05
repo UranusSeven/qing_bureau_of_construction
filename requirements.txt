@@ -1,6 +1,5 @@
-requests~=2.28.2
-matplotlib~=3.6.3
-whoosh~=2.7.4
-pyinquirer~=1.0.3
 jieba~=0.42.1
+streamlit~=1.17.0
+whoosh~=2.7.4
+requests~=2.28.2
 zhconv~=1.4.3
