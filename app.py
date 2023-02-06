@@ -52,7 +52,7 @@ def app():
         for vol, page, side, content in choices:
             location = f"{vol} 卷 {int(page) - 1} 頁{side}部分"
             if CHROME_EXISTS:
-                pdf_file_path = f"file://{PDF_FILES_DIR}/{vol}.pdf#page={page}"
+                pdf_file_path = f"file://{PDF_FILES_DIR}/{vol}.pdf#page={int(page) + 1}"
                 location = f"[{location}]({pdf_file_path})"
                 st.markdown(location)
             else:
