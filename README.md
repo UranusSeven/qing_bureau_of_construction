@@ -59,19 +59,19 @@ To avoid conflicts, it is highly recommended to create a new virtual environment
 pip install -r requirements.txt
 ```
 
-### 执行 `search.py` 并按提示进行使用 Execute `search.py` and Follow the Instructions
+### 运行
 
-![render1674801085308](https://user-images.githubusercontent.com/109661872/215024151-8f2b1753-fc04-47bf-8905-54dc92b0a718.gif)
+执行 `streamlit run app.py`，浏览器会自动打开搜索界面。输入关键字后按回车，系统将展示所有匹配结果。如果结果中 `XX 卷 XX 頁X半部分` 是超链接，单击可以打开 PDF 文件的对应页。（目前仅在 macOS + Chrome 环境下验证过，Chrome 需要安装 `Enable local file links` 插件）
 
-选中想要查看的页，点击回车，系统将自动打开这一页.
+Run `streamlit run app.py`. You should see a new pop-up on your browser. You can then input the keywords and press ENTER and the system will show you all the matches. If you want to see the original PDF page for context, just click the hyperlink in the results. (Works for macOS + Chrome. The Chrome plug `Enable local file links` is required)
 
-Select the page you want and press `enter`, the system will open the page for you.
+![image](https://user-images.githubusercontent.com/109661872/217296951-d71e28f1-862b-4755-9e56-8a67dd516248.png)
+
+
 
 #### 高级搜索 Advanced Search
 
-我们可以使用 `AND`, `OR`, 'NOT' 与关键字进行组合, 规则见 whoosh 的[文档](https://whoosh.readthedocs.io/en/latest/querylang.html). 如 `法瑯 AND 銅瓶` 将会返回同时包含这两个关键字的文档.
+目前支持输入以空格分隔的多个关键字，系统将会展示同时包含这些关键字的结果。
 
-You can combine `AND`, `OR`, 'NOT' with your key words according to [whoosh's query language](https://whoosh.readthedocs.io/en/latest/querylang.html).
-
-![render1674802568386](https://user-images.githubusercontent.com/109661872/215027514-f1d48dce-74b9-4690-8fb2-45353e511580.gif)
+You can input space separated keywords for records that contains all of these keywords.
 
