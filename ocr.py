@@ -12,6 +12,7 @@ from split_image import split_image
 
 # TODO: other volumes
 VOL_TO_START_PAGE_NUM: Dict[int, int] = {
+    39: 30,
     40: 26,
     41: 24,
     42: 22,
@@ -22,6 +23,12 @@ VOL_TO_START_PAGE_NUM: Dict[int, int] = {
     47: 18,
     48: 16,
     49: 18,
+    50: 20,
+    51: 26,
+    52: 28,
+    53: 35,
+    54: 62,
+    55: 52,
 }
 PDF_FILES_DIR = "pdf_files"
 TEMP_DIR = "temp"
@@ -92,15 +99,22 @@ def ocr(page_path: str, ocr_result_path: str) -> bool:
     start_time = time.time()
     continue_ = True
     while continue_:
-        resp = request(page_path, OCR_ENDPOINT)
-        resp_json = json.loads(resp.text)
-        if "msg" in resp_json:
-            msg = resp_json["msg"]
-            print(f"\trequest failed with msg {msg}")
+        try:
+            resp = request(page_path, OCR_ENDPOINT)
+            resp_json = json.loads(resp.text)
+
+            if "msg" in resp_json:
+                msg = resp_json["msg"]
+                print(f"\trequest failed with msg {msg}")
+                continue_ = IGNORE_FAILURE
+                time.sleep(15)
+            else:
+                continue_ = False
+        except Exception as e:
+            print(f"\trequest failed due to {e}")
             continue_ = IGNORE_FAILURE
             time.sleep(15)
-        else:
-            continue_ = False
+            continue
 
     with open(ocr_result_path, "w") as fd:
         fd.write(resp.text)
