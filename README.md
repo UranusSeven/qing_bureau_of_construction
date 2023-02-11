@@ -37,6 +37,11 @@ Thanks [gj.cool](https://gj.cool/) for their powerful OCR API, which greatly acc
   - 添加了 **44卷** 至 **47卷** 全部内容
   - 添加了 **43卷** 前 209 页内容
 
+11/02/2023 更新：
+  - 添加了 **43卷** 剩余部分
+  - 添加了 **39卷** 至 **42卷** 全部内容
+  - 添加了 **50卷** 与 **55卷** 部分内容
+
 ## 使用 Usage
 ### 克隆本项目 Clone the Project
 SSH:
