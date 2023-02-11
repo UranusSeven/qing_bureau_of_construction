@@ -3,15 +3,26 @@ import os
 
 import jieba
 import streamlit as st
-from whoosh.index import open_dir
 from whoosh.qparser import QueryParser
 
-from build_index import INDEX_DIR, DummyAnalyzer
-
+from build_index import INDEX_DIR, DummyAnalyzer, build
 
 PDF_FILES_DIR = "pdf_files"
 OCR_RESULTS_DIR = "ocr_results"
 CHROME_EXISTS = False
+# TODO: make it an arg
+FORCE_BUILD_INDEX = True
+
+
+def build_index(force: bool = FORCE_BUILD_INDEX):
+    if "index" not in st.session_state:
+        print("trying to get or rebuild index.")
+        ix = build(force, quiet=True)
+        st.session_state["index"] = ix
+        return ix
+    else:
+        print("using cached index.")
+        return st.session_state.index
 
 
 def highlight(keywords: tuple[str], content: str) -> str:
@@ -27,7 +38,7 @@ def open_pdf(vol: int, page: int):
 
 def app():
     st.title("清宮造辦處電子檔案搜索系統")
-    keywords = st.text_input('請以 **繁體中文** 輸入待查詢內容:')
+    keywords = st.text_input("請以 **繁體中文** 輸入待查詢內容:")
     keywords = keywords.split()
 
     if keywords:
@@ -60,11 +71,11 @@ def app():
             st.caption(content)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     jieba.setLogLevel(logging.ERROR)
     jieba.load_userdict("dict.txt")
 
-    ix = open_dir(INDEX_DIR)
+    ix = build_index()
     searcher = ix.searcher()
     content_t_cn_parser = QueryParser("content_t_cn", ix.schema)
 

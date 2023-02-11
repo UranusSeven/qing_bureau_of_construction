@@ -130,3 +130,6 @@ dmypy.json
 
 # temp dir
 temp
+
+# index dir
+index
