@@ -10,7 +10,7 @@ from whoosh.qparser import QueryParser
 
 from build_index import INDEX_DIR, DummyAnalyzer, build
 
-PDF_FILES_DIR = "pdf_files"
+PDF_FILES_DIR = None
 OCR_RESULTS_DIR = "ocr_results"
 CHROME_EXISTS = False
 
@@ -117,6 +117,6 @@ if __name__ == "__main__":
     if os.path.exists("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"):
         CHROME_EXISTS = True
 
-    PDF_FILES_DIR = args.pdf_files_dir
+    PDF_FILES_DIR = os.path.abspath(args.pdf_files_dir)
 
     app()
