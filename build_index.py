@@ -10,12 +10,13 @@ from whoosh.fields import NUMERIC, TEXT, Schema
 from whoosh.index import create_in, open_dir
 from zhconv import convert
 
+from ocr import OCR_RESULTS_DIR
+
 if TYPE_CHECKING:
     from whoosh.index import Index
 
 
 INDEX_DIR = "index"
-RECOGNITION_RESULTS_DIR = "ocr_results"
 PROB_THRESHOLD = 0.2
 
 
@@ -33,34 +34,38 @@ class DummyAnalyzer(Tokenizer):
             yield token
 
 
-def build(
-    force: bool = True, quiet: bool = False, show_progress: bool = False
-) -> "Index":
-    index_exists = os.path.exists(INDEX_DIR)
-    if not index_exists or index_exists and force:
-        if index_exists and force:
-            shutil.rmtree(INDEX_DIR, ignore_errors=True)
-        jieba.load_userdict("dict.txt")
-        analyzer = ChineseAnalyzer()
-        schema = Schema(
-            vol=NUMERIC(stored=True, sortable=True),
-            page=NUMERIC(stored=True, sortable=True),
-            side=NUMERIC(stored=True, sortable=True),
-            content_t_cn=TEXT(stored=True, analyzer=analyzer),
-            content_s_cn=TEXT(stored=True, analyzer=analyzer),
-            content_raw=TEXT(stored=True, analyzer=DummyAnalyzer()),
-        )
-        os.mkdir(INDEX_DIR)
-        ix = create_in(INDEX_DIR, schema)
-        _build(ix, quiet, show_progress)
-        return ix
-    else:
-        return open_dir(INDEX_DIR)
+def validate():
+    ix = open_dir(INDEX_DIR)
+    expected = len(os.listdir(OCR_RESULTS_DIR))
+    actual = ix.searcher().doc_count()
+    return actual == expected, expected, actual
+
+
+def load():
+    return open_dir(INDEX_DIR)
+
+
+def build(quiet: bool = False, show_progress: bool = False) -> "Index":
+    shutil.rmtree(INDEX_DIR, ignore_errors=True)
+    jieba.load_userdict("dict.txt")
+    analyzer = ChineseAnalyzer()
+    schema = Schema(
+        vol=NUMERIC(stored=True, sortable=True),
+        page=NUMERIC(stored=True, sortable=True),
+        side=NUMERIC(stored=True, sortable=True),
+        content_t_cn=TEXT(stored=True, analyzer=analyzer),
+        content_s_cn=TEXT(stored=True, analyzer=analyzer),
+        content_raw=TEXT(stored=True, analyzer=DummyAnalyzer()),
+    )
+    os.mkdir(INDEX_DIR)
+    ix = create_in(INDEX_DIR, schema)
+    _build(ix, quiet, show_progress)
+    return ix
 
 
 def _build(idx: "Index", quiet: bool, show_progress: bool):
     writer = idx.writer()
-    files = os.listdir(RECOGNITION_RESULTS_DIR)
+    files = os.listdir(OCR_RESULTS_DIR)
 
     progress_bar = None
     if show_progress:
@@ -76,11 +81,11 @@ def _build(idx: "Index", quiet: bool, show_progress: bool):
 
         if not quiet:
             progress = float(i) / len(files)
-            print(f"{f}, progress: {progress}")
+            print(f"{f}, progress: {i} / {len(files)}")
             if progress_bar is not None:
                 progress_bar.progress(progress, text=f"({i} / {len(files)})")
 
-        with open(f"{RECOGNITION_RESULTS_DIR}/{f}") as fd:
+        with open(f"{OCR_RESULTS_DIR}/{f}") as fd:
             j = json.load(fd)
 
         chars = []
@@ -103,4 +108,4 @@ def _build(idx: "Index", quiet: bool, show_progress: bool):
 
 
 if __name__ == "__main__":
-    build(force=True, quiet=False)
+    build(quiet=False)

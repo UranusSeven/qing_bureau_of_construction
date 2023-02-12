@@ -8,25 +8,27 @@ import streamlit as st
 from whoosh import sorting
 from whoosh.qparser import QueryParser
 
-from build_index import INDEX_DIR, DummyAnalyzer, build
+from build_index import INDEX_DIR, DummyAnalyzer, build, load, validate
 
 PDF_FILES_DIR = None
 OCR_RESULTS_DIR = "ocr_results"
 CHROME_EXISTS = False
 
 
-def build_index(force: bool):
+def get_index():
     if "index" not in st.session_state:
-        if force:
-            print("rebuilding index.")
-        else:
-            print("loading existing index.")
-        ix = build(force, quiet=False, show_progress=True)
-        st.session_state["index"] = ix
-        return ix
-    else:
-        print("using cached index.")
-        return st.session_state.index
+        return None
+    return st.session_state.index
+
+
+def build_index():
+    print("building index.")
+    st.session_state["index"] = build(quiet=False, show_progress=True)
+
+
+def load_index():
+    print("loading index.")
+    st.session_state["index"] = load()
 
 
 def highlight(keywords: tuple[str], content: str) -> str:
@@ -37,12 +39,22 @@ def highlight(keywords: tuple[str], content: str) -> str:
 
 
 def app():
-    if not os.path.exists(INDEX_DIR):
-        st.warning("未發現可用索引，即將開始構建索引，這可能需要 1-2 分鐘")
-        build_index(force=True)
-        st.success("索引構建完成!")
-    else:
-        build_index(force=False)
+    ix = get_index()
+    if ix is None:
+        if not os.path.exists(INDEX_DIR):
+            st.warning("未發現可用索引，即將開始構建索引，這可能需要 1-2 分鐘")
+            build_index()
+            st.success("索引構建完成!")
+        else:
+            st.warning("加載索引中...")
+            load_index()
+            st.success("加載構建完成!")
+            st.info("驗證索引中...")
+            passed, expected, actual = validate()
+            if passed:
+                st.success("驗證功過!")
+            else:
+                st.error(f"驗證失敗, 預期 {expected} 項, 實際 {actual} 項, 請重建索引")
 
     st.subheader("清宮造辦處電子檔案搜索系統")
     keywords = st.sidebar.text_input("請以 **繁體中文** 輸入待查詢內容:")
@@ -58,6 +70,11 @@ def app():
         sorted_by = [vol_facet, page_facet, side_facet]
 
     start_vol, end_vol = st.sidebar.slider("卷號搜索範圍(37 卷之前內容待更新)", 38, 55, (38, 55))
+
+    if st.sidebar.button("重建索引"):
+        st.sidebar.warning("即將開始構建索引，這可能需要 1-2 分鐘")
+        build_index()
+        st.sidebar.success("索引構建完成!")
 
     if keywords:
         ix = st.session_state.index
@@ -111,7 +128,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Qing Manufacturing Office Digital Records Search Engine"
     )
-    parser.add_argument('--pdf_files_dir', type=str)
+    parser.add_argument("--pdf_files_dir", type=str)
     args = parser.parse_args()
 
     if os.path.exists("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"):
