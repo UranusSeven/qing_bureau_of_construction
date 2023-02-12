@@ -104,6 +104,10 @@ def _build(idx: "Index", quiet: bool, show_progress: bool):
             content_s_cn=content_s_cn,
             content_raw=content_t_cn,
         )
+    if show_progress:
+        import streamlit as st
+
+        st.info("寫入索引中...")
     writer.commit()
 
 
