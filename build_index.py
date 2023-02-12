@@ -37,7 +37,7 @@ def build(force: bool = True, quiet: bool = False) -> "Index":
     index_exists = os.path.exists(INDEX_DIR)
     if not index_exists or index_exists and force:
         if index_exists and force:
-            shutil.rmtree(INDEX_DIR)
+            shutil.rmtree(INDEX_DIR, ignore_errors=True)
         jieba.load_userdict("dict.txt")
         analyzer = ChineseAnalyzer()
         schema = Schema(
