@@ -11,7 +11,7 @@ PDF_FILES_DIR = "pdf_files"
 OCR_RESULTS_DIR = "ocr_results"
 CHROME_EXISTS = False
 # TODO: make it an arg
-FORCE_BUILD_INDEX = True
+FORCE_BUILD_INDEX = False
 
 
 def build_index(force: bool = FORCE_BUILD_INDEX):
