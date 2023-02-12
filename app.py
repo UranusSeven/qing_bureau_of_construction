@@ -1,3 +1,4 @@
+import argparse
 import logging
 import os
 
@@ -10,13 +11,14 @@ from build_index import INDEX_DIR, DummyAnalyzer, build
 PDF_FILES_DIR = "pdf_files"
 OCR_RESULTS_DIR = "ocr_results"
 CHROME_EXISTS = False
-# TODO: make it an arg
-FORCE_BUILD_INDEX = False
 
 
-def build_index(force: bool = FORCE_BUILD_INDEX):
+def build_index(force: bool):
     if "index" not in st.session_state:
-        print("trying to get or rebuild index.")
+        if force:
+            print("rebuilding index.")
+        else:
+            print("loading existing index.")
         ix = build(force, quiet=True)
         st.session_state["index"] = ix
         return ix
@@ -75,7 +77,13 @@ if __name__ == "__main__":
     jieba.setLogLevel(logging.ERROR)
     jieba.load_userdict("dict.txt")
 
-    ix = build_index()
+    parser = argparse.ArgumentParser(
+        description='Qing Manufacturing Office Digital Records Search Engine'
+    )
+    parser.add_argument('--no_build_index', action="store_false")
+    args = parser.parse_args()
+
+    ix = build_index(args.no_build_index)
     searcher = ix.searcher()
     content_t_cn_parser = QueryParser("content_t_cn", ix.schema)
 
