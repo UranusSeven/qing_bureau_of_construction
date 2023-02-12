@@ -133,3 +133,6 @@ temp
 
 # index dir
 index
+
+# pdf files
+pdf_files
