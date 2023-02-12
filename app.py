@@ -95,7 +95,7 @@ def app():
 
         for vol, page, side, content in choices:
             location = f"{vol} 卷 {page - 1} 頁{side}部分"
-            if CHROME_EXISTS and PDF_FILES_DIR:
+            if CHROME_EXISTS and PDF_FILES_DIR is not None:
                 pdf_file_path = f"file://{PDF_FILES_DIR}/{vol}.pdf#page={page + 1}"
                 location = f"[{location}]({pdf_file_path})"
                 st.markdown(location)
@@ -117,6 +117,7 @@ if __name__ == "__main__":
     if os.path.exists("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"):
         CHROME_EXISTS = True
 
-    PDF_FILES_DIR = os.path.abspath(args.pdf_files_dir)
+    if args.pdf_files_dir is not None:
+        PDF_FILES_DIR = os.path.abspath(args.pdf_files_dir)
 
     app()
