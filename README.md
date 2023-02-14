@@ -69,12 +69,19 @@ pip install -r requirements.txt
 
 ### 运行
 
-执行 `streamlit run app.py`，浏览器会自动打开搜索界面。输入关键字后按回车，系统将展示所有匹配结果。如果结果中 `XX 卷 XX 頁X半部分` 是超链接，单击可以打开 PDF 文件的对应页。（目前仅在 macOS + Chrome 环境下验证过，Chrome 需要安装 `Enable local file links` 插件）
+执行 `streamlit run app.py`，浏览器会自动打开搜索界面。此时系统会自动检测索引是否存在，第一次运行时系统将会自动构建索引。
 
-Run `streamlit run app.py`. You should see a new pop-up on your browser. You can then input the keywords and press ENTER and the system will show you all the matches. If you want to see the original PDF page for context, just click the hyperlink in the results. (Works for macOS + Chrome. The Chrome plug `Enable local file links` is required)
+Run `streamlit run app.py`. You should see a new pop-up on your browser. When you run the system for the fisrt time, the system will 
+automatically build the index.
 
-![image](https://user-images.githubusercontent.com/109661872/217296951-d71e28f1-862b-4755-9e56-8a67dd516248.png)
+![image](https://user-images.githubusercontent.com/109661872/218738649-450c1f97-6ea0-498d-9ec6-6d6271728a85.png)
 
+
+输入关键字后按回车，系统将展示所有匹配结果。如果结果中 `XX 卷 XX 頁X半部分` 是超链接，单击可以打开 PDF 文件的对应页。（目前仅在 macOS + Chrome 环境下验证过，Chrome 需要安装 `Enable local file links` 插件）
+
+You can then input the keywords and press ENTER and the system will show you all the matches. If you want to see the original PDF page for context, just click the hyperlink in the results. (Works for macOS + Chrome. Chrome plugin `Enable local file links` is required)
+
+![image](https://user-images.githubusercontent.com/109661872/218739725-41a654d3-dfff-4fe6-9f95-00928057df83.png)
 
 
 #### 高级搜索 Advanced Search
