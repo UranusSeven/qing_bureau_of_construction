@@ -3,6 +3,7 @@ import logging
 import os
 import time
 
+import pandas as pd
 import jieba
 import streamlit as st
 from whoosh import sorting
@@ -13,6 +14,8 @@ from build_index import INDEX_DIR, DummyAnalyzer, build, load, validate
 PDF_FILES_DIR = None
 OCR_RESULTS_DIR = "ocr_results"
 CHROME_EXISTS = False
+START_VOL = 38
+END_VOL = 55
 
 
 def get_index():
@@ -29,6 +32,78 @@ def build_index():
 def load_index():
     print("loading index.")
     st.session_state["index"] = load()
+
+
+def search(ix, keywords, sorted_by, start_vol, end_vol):
+    searcher = ix.searcher()
+    content_t_cn_parser = QueryParser("content_t_cn", ix.schema)
+    query = content_t_cn_parser.parse(" AND ".join(keywords))
+
+    if sorted_by is None:
+        results = searcher.search(query, limit=None, optimize=False)
+    else:
+        results = searcher.search(
+            query, limit=None, optimize=False, sortedby=sorted_by
+        )
+
+    hits = []
+    for hit in results:
+        vol = hit["vol"]
+        vol = int(vol)
+        if vol < start_vol or vol > end_vol:
+            continue
+        page = int(hit["page"])
+        side = "上半" if hit["side"] == "0" else "下半"
+        content: str = hit["content_raw"]
+        content = " ".join(list(jieba.cut(content, cut_all=False)))
+        content = highlight(keywords, content)
+
+        choice = (vol, page, side, content)
+        hits.append(choice)
+
+    return hits
+
+
+def show_vol_distribution(hits, start_vol, end_vol):
+    df = pd.DataFrame(hits, columns=["vol", "page", "side", "content"])
+    gb = df.groupby(by="vol", as_index=False).agg(count=("content", 'count'))
+    show_plotly(gb, start_vol, end_vol)
+
+
+def show_plotly(gb, start_vol, end_vol):
+    import plotly.graph_objects as go
+    colors = ['#FF4B4B'] * len(gb)
+
+    fig = go.Figure()
+    fig.add_trace(go.Bar(x=gb['vol'], y=gb['count'], marker_color=colors))
+    fig.update_layout(height=300)
+    st.plotly_chart(fig, use_container_width=True)
+
+
+def show_pyplot(gb):
+    import matplotlib.pyplot as plt
+
+    vol_min = gb["vol"].min()
+    vol_max = gb["vol"].max()
+    fig, ax = plt.subplots(figsize=(16, 9))
+    ax.bar(gb["vol"], gb["count"], width=0.5, color='#FF4B4B')
+    plt.xticks(range(vol_min, vol_max + 1))
+    ax.spines["top"].set_visible(False)
+    ax.spines["left"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    st.pyplot(fig, clear_figure=True)
+
+
+def show_results(hits):
+    for vol, page, side, content in hits:
+        location = f"{vol} 卷 {page - 1} 頁{side}部分"
+        if CHROME_EXISTS and PDF_FILES_DIR is not None:
+            pdf_file_path = f"file://{PDF_FILES_DIR}/{vol}.pdf#page={page + 1}"
+            location = f"[{location}]({pdf_file_path})"
+            st.markdown(location)
+        else:
+            st.write(location)
+        st.caption(content)
 
 
 def highlight(keywords: tuple[str], content: str) -> str:
@@ -69,7 +144,12 @@ def app():
         side_facet = sorting.FieldFacet("side", reverse=reverse)
         sorted_by = [vol_facet, page_facet, side_facet]
 
-    start_vol, end_vol = st.sidebar.slider("卷號搜索範圍(37 卷之前內容待更新)", 38, 55, (38, 55))
+    start_vol, end_vol = st.sidebar.slider(
+        "卷號搜索範圍(37 卷之前內容待更新)",
+        START_VOL,
+        END_VOL,
+        (START_VOL, END_VOL)
+    )
 
     if st.sidebar.button("重建索引"):
         st.sidebar.warning("即將開始構建索引，這可能需要 1-2 分鐘")
@@ -77,48 +157,15 @@ def app():
         st.sidebar.success("索引構建完成!")
 
     if keywords:
-        ix = st.session_state.index
-        searcher = ix.searcher()
-        content_t_cn_parser = QueryParser("content_t_cn", ix.schema)
-        query = content_t_cn_parser.parse(" AND ".join(keywords))
-
         start = time.time()
-        if sorted_by is None:
-            results = searcher.search(query, limit=None, optimize=False)
-        else:
-            results = searcher.search(
-                query, limit=None, optimize=False, sortedby=sorted_by
-            )
-
-        choices = []
-        for hit in results:
-            vol = hit["vol"]
-            vol = int(vol)
-            if vol < start_vol or vol > end_vol:
-                continue
-            page = int(hit["page"])
-            side = "上半" if hit["side"] == "0" else "下半"
-            content: str = hit["content_raw"]
-            content = " ".join(list(jieba.cut(content, cut_all=False)))
-            content = highlight(keywords, content)
-
-            choice = (vol, page, side, content)
-            choices.append(choice)
-
-        if not choices:
+        ix = st.session_state.index
+        hits = search(ix, keywords, sorted_by, start_vol, end_vol)
+        if not hits:
             st.error("未找到匹配結果.")
         else:
-            st.success("找到 %d 個匹配結果，用時 %f 秒" % (len(choices), time.time() - start))
-
-        for vol, page, side, content in choices:
-            location = f"{vol} 卷 {page - 1} 頁{side}部分"
-            if CHROME_EXISTS and PDF_FILES_DIR is not None:
-                pdf_file_path = f"file://{PDF_FILES_DIR}/{vol}.pdf#page={page + 1}"
-                location = f"[{location}]({pdf_file_path})"
-                st.markdown(location)
-            else:
-                st.write(location)
-            st.caption(content)
+            st.success("找到 %d 個匹配結果，用時 %f 秒" % (len(hits), time.time() - start))
+            show_vol_distribution(hits, start_vol, end_vol)
+            show_results(hits)
 
 
 if __name__ == "__main__":
